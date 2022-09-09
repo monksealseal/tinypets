@@ -20,10 +20,4 @@ layout: default
   const label = json['data'][0]['confidences'][0]['label'];
     results.innerHTML = `<br/><img src="${reader.result}" width="300"> <p>${label}</p>`
   }
-  function read() {
-    const reader = new FileReader();
-    reader.addEventListener('load', () => loaded(reader))
-    reader.readAsDataURL(photo.files[0]);
-  }
-  photo.addEventListener('input', read);
 </script>

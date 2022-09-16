@@ -6,7 +6,7 @@ layout: default
 <input id="photos" type="file" multiple="">
 <script>
   async function loaded(reader) {
-    const response = await fetch('https://api-inference.huggingface.co/models/monkseal555/autotrain-hurricane3-1415853436', {
+    const response = await fetch('https://hf.space/embed/monkseal555/testing/+/api/predict', {
       method: "POST", body: JSON.stringify({ "data": [reader.result] }),
       headers: { "Content-Type": "application/json" }
     });

@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rossby Wave Simulator - Atmospheric Dynamics</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .control-group h3 {
+            margin-bottom: 15px;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .control {
+            margin-bottom: 15px;
+        }
+
+        .control:last-child {
+            margin-bottom: 0;
+        }
+
+        .control label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #d3d3d3;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #764ba2;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+
+        .value-display {
+            min-width: 80px;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .presets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .preset-btn {
+            padding: 10px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .visualization {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .canvas-container {
+            position: relative;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .info-panel {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .equation {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .metric-label {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            font-family: 'Courier New', monospace;
+        }
+
+        .info-box {
+            background: #fff9e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .info-box h4 {
+            color: #f57c00;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .play-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .play-btn {
+            padding: 12px 24px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .play-btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .play-btn.active {
+            background: #28a745;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .arrow {
+            position: absolute;
+            font-size: 24px;
+        }
+
+        .legend {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.85em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 Rossby Wave Simulator</h1>
+            <div class="subtitle">Explore Planetary Waves in Atmospheric Dynamics</div>
+        </header>
+
+        <div class="main-content">
+            <!-- Controls Panel -->
+            <div class="panel controls">
+                <div class="control-group">
+                    <h3>⚙️ Wave Parameters</h3>
+
+                    <div class="control">
+                        <label>Zonal Wavenumber (k)</label>
+                        <div class="control-row">
+                            <input type="range" id="wavenumber-k" min="1" max="10" step="1" value="4">
+                            <span class="value-display" id="wavenumber-k-value">4</span>
+                        </div>
+                    </div>
+
+                    <div class="control">
+                        <label>Meridional Wavenumber (l)</label>
+                        <div class="control-row">
+                            <input type="range" id="wavenumber-l" min="1" max="8" step="1" value="2">
+                            <span class="value-display" id="wavenumber-l-value">2</span>
+                        </div>
+                    </div>
+
+                    <div class="control">
+                        <label>Beta (β) × 10⁻¹¹ m⁻¹s⁻¹</label>
+                        <div class="control-row">
+                            <input type="range" id="beta" min="0.5" max="5" step="0.1" value="2.0">
+                            <span class="value-display" id="beta-value">2.0</span>
+                        </div>
+                    </div>
+
+                    <div class="control">
+                        <label>Background Wind (ū) m/s</label>
+                        <div class="control-row">
+                            <input type="range" id="background-wind" min="-20" max="40" step="1" value="10">
+                            <span class="value-display" id="background-wind-value">10</span>
+                        </div>
+                    </div>
+
+                    <div class="control">
+                        <label>Latitude (°N)</label>
+                        <div class="control-row">
+                            <input type="range" id="latitude" min="15" max="75" step="5" value="45">
+                            <span class="value-display" id="latitude-value">45</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>🎯 Preset Scenarios</h3>
+                    <div class="presets">
+                        <button class="preset-btn" data-preset="stationary">Stationary Wave</button>
+                        <button class="preset-btn" data-preset="jetstream">Jet Stream Meander</button>
+                        <button class="preset-btn" data-preset="blocking">Blocking Pattern</button>
+                        <button class="preset-btn" data-preset="fastprop">Fast Propagation</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>▶️ Animation</h3>
+                    <div class="play-controls">
+                        <button class="play-btn" id="play-pause">▶️ Play</button>
+                        <button class="play-btn" id="reset">🔄 Reset</button>
+                    </div>
+                </div>
+
+                <div class="info-box">
+                    <h4>💡 Quick Guide</h4>
+                    <p><strong>Rossby waves</strong> are planetary-scale waves caused by Earth's rotation and sphericity. They're crucial for weather patterns, jet stream behavior, and climate dynamics.</p>
+                </div>
+            </div>
+
+            <!-- Visualization Panel -->
+            <div class="visualization">
+                <div class="panel">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Wave Height Field Animation</h3>
+                    <div class="canvas-container">
+                        <canvas id="wave-canvas" width="800" height="400"></canvas>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #ff4444;"></div>
+                                <span>Ridge (High)</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background: #4444ff;"></div>
+                                <span>Trough (Low)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3 style="margin-bottom: 15px; color: #667eea;">Dispersion Relation</h3>
+                    <div class="canvas-container">
+                        <canvas id="dispersion-canvas" width="800" height="300"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel info-panel">
+                    <h3>📊 Wave Properties</h3>
+
+                    <div class="equation">
+                        ω = ū·k - β·k / (k² + l²)
+                    </div>
+
+                    <div class="metrics">
+                        <div class="metric">
+                            <div class="metric-label">Frequency (ω)</div>
+                            <div class="metric-value" id="frequency-value">--</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Period</div>
+                            <div class="metric-value" id="period-value">--</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Phase Speed (cₚ)</div>
+                            <div class="metric-value" id="phase-speed-value">--</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Group Velocity (cₘ)</div>
+                            <div class="metric-value" id="group-velocity-value">--</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Wavelength (λₓ)</div>
+                            <div class="metric-value" id="wavelength-value">--</div>
+                        </div>
+                        <div class="metric">
+                            <div class="metric-label">Wave Type</div>
+                            <div class="metric-value" id="wave-type-value">--</div>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h4>🎓 Physical Interpretation</h4>
+                        <p id="interpretation-text">Adjust parameters to see how Rossby waves behave...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Physical constants
+        const EARTH_RADIUS = 6.371e6; // meters
+        const OMEGA_EARTH = 7.292e-5; // rad/s
+
+        // Canvas contexts
+        const waveCanvas = document.getElementById('wave-canvas');
+        const waveCtx = waveCanvas.getContext('2d');
+        const dispersionCanvas = document.getElementById('dispersion-canvas');
+        const dispersionCtx = dispersionCanvas.getContext('2d');
+
+        // Animation state
+        let time = 0;
+        let isPlaying = false;
+        let animationId = null;
+
+        // Current parameters
+        let params = {
+            k: 4,
+            l: 2,
+            beta: 2.0e-11,
+            u_bar: 10,
+            latitude: 45
+        };
+
+        // Get all control elements
+        const controls = {
+            k: document.getElementById('wavenumber-k'),
+            l: document.getElementById('wavenumber-l'),
+            beta: document.getElementById('beta'),
+            u_bar: document.getElementById('background-wind'),
+            latitude: document.getElementById('latitude')
+        };
+
+        const valueDisplays = {
+            k: document.getElementById('wavenumber-k-value'),
+            l: document.getElementById('wavenumber-l-value'),
+            beta: document.getElementById('beta-value'),
+            u_bar: document.getElementById('background-wind-value'),
+            latitude: document.getElementById('latitude-value')
+        };
+
+        // Preset configurations
+        const presets = {
+            stationary: { k: 4, l: 1, beta: 2.0, u_bar: 8.2, latitude: 45 },
+            jetstream: { k: 5, l: 2, beta: 2.3, u_bar: 25, latitude: 50 },
+            blocking: { k: 2, l: 1, beta: 1.8, u_bar: 5, latitude: 60 },
+            fastprop: { k: 8, l: 3, beta: 2.5, u_bar: 35, latitude: 35 }
+        };
+
+        // Calculate Rossby wave properties
+        function calculateWaveProperties() {
+            const k_rad = params.k * 2 * Math.PI / (2 * Math.PI * EARTH_RADIUS * Math.cos(params.latitude * Math.PI / 180));
+            const l_rad = params.l * 2 * Math.PI / (2 * Math.PI * EARTH_RADIUS);
+
+            const K_squared = k_rad * k_rad + l_rad * l_rad;
+            const omega = params.u_bar * k_rad - (params.beta * k_rad) / K_squared;
+
+            const period = Math.abs(2 * Math.PI / omega);
+            const phase_speed = omega / k_rad;
+
+            // Group velocity: dω/dk
+            const group_velocity = params.u_bar - params.beta * (l_rad * l_rad - k_rad * k_rad) / (K_squared * K_squared);
+
+            const wavelength_x = 2 * Math.PI / k_rad / 1000; // in km
+
+            return {
+                omega: omega,
+                period: period,
+                phase_speed: phase_speed,
+                group_velocity: group_velocity,
+                wavelength_x: wavelength_x,
+                k_rad: k_rad,
+                l_rad: l_rad
+            };
+        }
+
+        // Update display values
+        function updateDisplays() {
+            const props = calculateWaveProperties();
+
+            document.getElementById('frequency-value').textContent =
+                `${(props.omega * 1e6).toFixed(2)} × 10⁻⁶ rad/s`;
+
+            const periodDays = props.period / 86400;
+            document.getElementById('period-value').textContent =
+                `${periodDays.toFixed(1)} days`;
+
+            document.getElementById('phase-speed-value').textContent =
+                `${props.phase_speed.toFixed(2)} m/s`;
+
+            document.getElementById('group-velocity-value').textContent =
+                `${props.group_velocity.toFixed(2)} m/s`;
+
+            document.getElementById('wavelength-value').textContent =
+                `${props.wavelength_x.toFixed(0)} km`;
+
+            // Determine wave type
+            let waveType = '';
+            if (Math.abs(props.phase_speed) < 1) {
+                waveType = 'Stationary';
+            } else if (props.phase_speed < 0) {
+                waveType = 'Retrograde';
+            } else {
+                waveType = 'Prograde';
+            }
+            document.getElementById('wave-type-value').textContent = waveType;
+
+            // Update interpretation
+            let interpretation = '';
+            if (Math.abs(props.phase_speed) < 1) {
+                interpretation = '<strong>Stationary wave:</strong> This wave remains fixed in space, often associated with persistent weather patterns like blocking highs. The background flow nearly balances the intrinsic westward propagation.';
+            } else if (props.phase_speed < 0) {
+                interpretation = '<strong>Retrograde (westward) propagation:</strong> The wave moves westward relative to the ground. This is the classic Rossby wave behavior, where the restoring force from planetary vorticity gradient dominates.';
+            } else {
+                interpretation = '<strong>Prograde (eastward) propagation:</strong> Strong background winds carry the wave eastward faster than its intrinsic westward tendency. Common in jet stream regions.';
+            }
+
+            if (props.group_velocity > 0 && props.phase_speed < 0) {
+                interpretation += ' <strong>Note:</strong> Energy propagates eastward while phase propagates westward!';
+            }
+
+            document.getElementById('interpretation-text').innerHTML = interpretation;
+        }
+
+        // Draw wave field
+        function drawWaveField() {
+            const width = waveCanvas.width;
+            const height = waveCanvas.height;
+
+            waveCtx.clearRect(0, 0, width, height);
+
+            const props = calculateWaveProperties();
+            const gridSize = 2;
+
+            // Draw wave field as colored grid
+            for (let x = 0; x < width; x += gridSize) {
+                for (let y = 0; y < height; y += gridSize) {
+                    const lon = (x / width) * 2 * Math.PI;
+                    const lat = (y / height) * Math.PI - Math.PI / 2;
+
+                    // Wave equation: h = A * cos(kx + ly - ωt)
+                    const phase = params.k * lon + params.l * (lat + Math.PI/2) - props.omega * time;
+                    const amplitude = Math.cos(phase);
+
+                    // Color mapping: red for ridges, blue for troughs
+                    let r, g, b;
+                    if (amplitude > 0) {
+                        r = 255;
+                        g = Math.floor(255 * (1 - amplitude));
+                        b = Math.floor(255 * (1 - amplitude));
+                    } else {
+                        r = Math.floor(255 * (1 + amplitude));
+                        g = Math.floor(255 * (1 + amplitude));
+                        b = 255;
+                    }
+
+                    waveCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    waveCtx.fillRect(x, y, gridSize, gridSize);
+                }
+            }
+
+            // Draw velocity vectors
+            drawVelocityVectors(props);
+
+            // Draw grid lines
+            waveCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            waveCtx.lineWidth = 1;
+            for (let i = 0; i <= params.k * 2; i++) {
+                const x = (i / (params.k * 2)) * width;
+                waveCtx.beginPath();
+                waveCtx.moveTo(x, 0);
+                waveCtx.lineTo(x, height);
+                waveCtx.stroke();
+            }
+        }
+
+        // Draw velocity vectors
+        function drawVelocityVectors(props) {
+            const width = waveCanvas.width;
+            const height = waveCanvas.height;
+            const spacing = 60;
+
+            waveCtx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+            waveCtx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            waveCtx.lineWidth = 2;
+
+            for (let x = spacing; x < width; x += spacing) {
+                const y = height / 2;
+                const lon = (x / width) * 2 * Math.PI;
+
+                const phase = params.k * lon - props.omega * time;
+                const u_perturbation = Math.sin(phase) * 5; // scaled for visualization
+
+                const arrowLength = 30;
+                const direction = props.phase_speed > 0 ? 1 : -1;
+
+                // Draw arrow
+                waveCtx.beginPath();
+                waveCtx.moveTo(x, y);
+                waveCtx.lineTo(x + direction * arrowLength, y);
+                waveCtx.stroke();
+
+                // Arrow head
+                waveCtx.beginPath();
+                waveCtx.moveTo(x + direction * arrowLength, y);
+                waveCtx.lineTo(x + direction * (arrowLength - 8), y - 5);
+                waveCtx.lineTo(x + direction * (arrowLength - 8), y + 5);
+                waveCtx.closePath();
+                waveCtx.fill();
+            }
+
+            // Draw phase speed label
+            waveCtx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+            waveCtx.font = 'bold 14px Arial';
+            waveCtx.fillText(`Phase speed: ${props.phase_speed.toFixed(1)} m/s`, 10, 25);
+        }
+
+        // Draw dispersion relation
+        function drawDispersionRelation() {
+            const width = dispersionCanvas.width;
+            const height = dispersionCanvas.height;
+            const padding = 60;
+
+            dispersionCtx.clearRect(0, 0, width, height);
+
+            // Draw axes
+            dispersionCtx.strokeStyle = '#333';
+            dispersionCtx.lineWidth = 2;
+            dispersionCtx.beginPath();
+            dispersionCtx.moveTo(padding, padding);
+            dispersionCtx.lineTo(padding, height - padding);
+            dispersionCtx.lineTo(width - padding, height - padding);
+            dispersionCtx.stroke();
+
+            // Axis labels
+            dispersionCtx.fillStyle = '#333';
+            dispersionCtx.font = 'bold 14px Arial';
+            dispersionCtx.fillText('Zonal Wavenumber (k)', width / 2 - 80, height - 20);
+
+            dispersionCtx.save();
+            dispersionCtx.translate(20, height / 2 + 80);
+            dispersionCtx.rotate(-Math.PI / 2);
+            dispersionCtx.fillText('Frequency ω (× 10⁻⁶ rad/s)', 0, 0);
+            dispersionCtx.restore();
+
+            // Calculate dispersion curve
+            const plotWidth = width - 2 * padding;
+            const plotHeight = height - 2 * padding;
+
+            const k_values = [];
+            const omega_values = [];
+
+            for (let k = 1; k <= 15; k += 0.1) {
+                const k_rad = k * 2 * Math.PI / (2 * Math.PI * EARTH_RADIUS * Math.cos(params.latitude * Math.PI / 180));
+                const l_rad = params.l * 2 * Math.PI / (2 * Math.PI * EARTH_RADIUS);
+                const K_squared = k_rad * k_rad + l_rad * l_rad;
+                const omega = params.u_bar * k_rad - (params.beta * k_rad) / K_squared;
+
+                k_values.push(k);
+                omega_values.push(omega);
+            }
+
+            // Find omega range
+            const omega_min = Math.min(...omega_values);
+            const omega_max = Math.max(...omega_values);
+            const omega_range = omega_max - omega_min;
+
+            // Draw dispersion curve
+            dispersionCtx.strokeStyle = '#667eea';
+            dispersionCtx.lineWidth = 3;
+            dispersionCtx.beginPath();
+
+            for (let i = 0; i < k_values.length; i++) {
+                const x = padding + (k_values[i] / 15) * plotWidth;
+                const y = height - padding - ((omega_values[i] - omega_min) / omega_range) * plotHeight;
+
+                if (i === 0) {
+                    dispersionCtx.moveTo(x, y);
+                } else {
+                    dispersionCtx.lineTo(x, y);
+                }
+            }
+            dispersionCtx.stroke();
+
+            // Mark current k value
+            const props = calculateWaveProperties();
+            const current_x = padding + (params.k / 15) * plotWidth;
+            const current_y = height - padding - ((props.omega - omega_min) / omega_range) * plotHeight;
+
+            dispersionCtx.fillStyle = '#ff4444';
+            dispersionCtx.beginPath();
+            dispersionCtx.arc(current_x, current_y, 8, 0, 2 * Math.PI);
+            dispersionCtx.fill();
+
+            // Draw grid
+            dispersionCtx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+            dispersionCtx.lineWidth = 1;
+            for (let i = 0; i <= 5; i++) {
+                const x = padding + (i / 5) * plotWidth;
+                dispersionCtx.beginPath();
+                dispersionCtx.moveTo(x, padding);
+                dispersionCtx.lineTo(x, height - padding);
+                dispersionCtx.stroke();
+
+                const y = padding + (i / 5) * plotHeight;
+                dispersionCtx.beginPath();
+                dispersionCtx.moveTo(padding, y);
+                dispersionCtx.lineTo(width - padding, y);
+                dispersionCtx.stroke();
+            }
+
+            // Tick labels
+            dispersionCtx.fillStyle = '#666';
+            dispersionCtx.font = '12px Arial';
+            for (let i = 0; i <= 5; i++) {
+                const k = (i / 5) * 15;
+                const x = padding + (i / 5) * plotWidth;
+                dispersionCtx.fillText(k.toFixed(0), x - 10, height - padding + 20);
+
+                const omega = omega_min + (i / 5) * omega_range;
+                const y = padding + (i / 5) * plotHeight;
+                dispersionCtx.fillText((omega * 1e6).toFixed(1), 10, height - padding - (i / 5) * plotHeight + 5);
+            }
+        }
+
+        // Animation loop
+        function animate() {
+            if (isPlaying) {
+                time += 0.05;
+                drawWaveField();
+                animationId = requestAnimationFrame(animate);
+            }
+        }
+
+        // Update everything
+        function update() {
+            updateDisplays();
+            drawWaveField();
+            drawDispersionRelation();
+        }
+
+        // Event listeners for controls
+        Object.keys(controls).forEach(key => {
+            controls[key].addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+
+                if (key === 'beta') {
+                    params[key] = value * 1e-11;
+                } else {
+                    params[key] = value;
+                }
+
+                valueDisplays[key].textContent = value;
+                update();
+            });
+        });
+
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const preset = presets[e.target.dataset.preset];
+
+                controls.k.value = preset.k;
+                controls.l.value = preset.l;
+                controls.beta.value = preset.beta;
+                controls.u_bar.value = preset.u_bar;
+                controls.latitude.value = preset.latitude;
+
+                params.k = preset.k;
+                params.l = preset.l;
+                params.beta = preset.beta * 1e-11;
+                params.u_bar = preset.u_bar;
+                params.latitude = preset.latitude;
+
+                Object.keys(valueDisplays).forEach(key => {
+                    if (key === 'beta') {
+                        valueDisplays[key].textContent = preset.beta;
+                    } else {
+                        valueDisplays[key].textContent = preset[key];
+                    }
+                });
+
+                update();
+            });
+        });
+
+        // Play/Pause button
+        document.getElementById('play-pause').addEventListener('click', (e) => {
+            isPlaying = !isPlaying;
+            e.target.textContent = isPlaying ? '⏸️ Pause' : '▶️ Play';
+            e.target.classList.toggle('active');
+
+            if (isPlaying) {
+                animate();
+            }
+        });
+
+        // Reset button
+        document.getElementById('reset').addEventListener('click', () => {
+            time = 0;
+            update();
+        });
+
+        // Initial render
+        update();
+    </script>
+</body>
+</html>

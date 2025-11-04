@@ -2,6 +2,10 @@
 title: Minimal JS Image Classifiers
 ---
 
+## Atmospheric Physics Simulators
+- [🌊 Rossby Wave Simulator](rossby-waves.html) - Interactive atmospheric wave dynamics
+
+## Image Classifiers
 - [Single file](1single.html)
 - [Multi-file](2multi.html)
 - [Parallel](3parallel.html)

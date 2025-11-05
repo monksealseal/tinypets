@@ -1,5 +1,20 @@
 ---
-title: Weather Presentation for Concord, NH
+title: Atmospheric Physics & Weather Education
+---
+
+## 🌊 Atmospheric Physics Simulators
+
+### [→ Rossby Wave Simulator](rossby-waves.html)
+Interactive educational tool for understanding planetary waves in atmospheric dynamics. Explore how Rossby waves propagate, their dispersion relations, and their role in weather patterns and the jet stream.
+
+**Features:**
+- Real-time wave visualization with ridges and troughs
+- Interactive controls (wavenumber, beta, background wind, latitude)
+- Dispersion relation plotting
+- Preset scenarios (stationary waves, jet stream, blocking patterns)
+- Animation speed control
+- Educational tooltips and physical interpretations
+
 ---
 
 # Weather Map Discussion - Concord, New Hampshire

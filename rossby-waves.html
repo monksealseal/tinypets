@@ -362,6 +362,14 @@
                             <span class="value-display" id="latitude-value">45</span>
                         </div>
                     </div>
+
+                    <div class="control">
+                        <label>Animation Speed</label>
+                        <div class="control-row">
+                            <input type="range" id="animation-speed" min="1" max="10" step="1" value="5">
+                            <span class="value-display" id="animation-speed-value">5</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="control-group">
@@ -472,6 +480,7 @@
         let time = 0;
         let isPlaying = false;
         let animationId = null;
+        let animationSpeed = 5;
 
         // Current parameters
         let params = {
@@ -488,7 +497,8 @@
             l: document.getElementById('wavenumber-l'),
             beta: document.getElementById('beta'),
             u_bar: document.getElementById('background-wind'),
-            latitude: document.getElementById('latitude')
+            latitude: document.getElementById('latitude'),
+            animationSpeed: document.getElementById('animation-speed')
         };
 
         const valueDisplays = {
@@ -496,7 +506,8 @@
             l: document.getElementById('wavenumber-l-value'),
             beta: document.getElementById('beta-value'),
             u_bar: document.getElementById('background-wind-value'),
-            latitude: document.getElementById('latitude-value')
+            latitude: document.getElementById('latitude-value'),
+            animationSpeed: document.getElementById('animation-speed-value')
         };
 
         // Preset configurations
@@ -786,7 +797,10 @@
         // Animation loop
         function animate() {
             if (isPlaying) {
-                time += 0.05;
+                // Speed up time by a factor to make animation visible
+                // Real Rossby waves have periods of days, so we speed up significantly
+                // Base increment represents ~3 hours per frame, scaled by user preference
+                time += 50000 * animationSpeed; // Adjustable time increment
                 drawWaveField();
                 animationId = requestAnimationFrame(animate);
             }
@@ -804,14 +818,18 @@
             controls[key].addEventListener('input', (e) => {
                 const value = parseFloat(e.target.value);
 
-                if (key === 'beta') {
+                if (key === 'animationSpeed') {
+                    animationSpeed = value;
+                    valueDisplays[key].textContent = value;
+                } else if (key === 'beta') {
                     params[key] = value * 1e-11;
+                    valueDisplays[key].textContent = value;
+                    update();
                 } else {
                     params[key] = value;
+                    valueDisplays[key].textContent = value;
+                    update();
                 }
-
-                valueDisplays[key].textContent = value;
-                update();
             });
         });
 
@@ -833,9 +851,12 @@
                 params.latitude = preset.latitude;
 
                 Object.keys(valueDisplays).forEach(key => {
-                    if (key === 'beta') {
+                    if (key === 'animationSpeed') {
+                        // Skip animation speed for presets
+                        return;
+                    } else if (key === 'beta') {
                         valueDisplays[key].textContent = preset.beta;
-                    } else {
+                    } else if (preset[key] !== undefined) {
                         valueDisplays[key].textContent = preset[key];
                     }
                 });

@@ -2,8 +2,8 @@ remote_theme: pages-themes/hacker
 plugins:
 - jekyll-remote-theme
 
-title: Minimal JS Image Classifiers
-description: Some basic examples of client interfaces to a computer vision API
+title: Weather Presentation - Concord, NH
+description: Comprehensive Weather Map Discussion for Concord, New Hampshire - November 2025
 
 author:
-  name: Jeremy Howard
+  name: Weather Analysis Project
